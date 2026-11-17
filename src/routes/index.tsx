@@ -358,9 +358,9 @@ function Index() {
       <Beyond />
       <Contact />
       <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-6 py-10">
-          <div><img src={logo.url} alt="FÓRMULACEM" width={581} height={460} className="h-16 w-auto object-contain" /><p className="mt-2 text-xs text-muted-foreground">© 2026 FÓRMULACEM. Lorem ipsum.</p></div>
-          <div className="flex gap-6 font-display text-xs uppercase tracking-widest text-muted-foreground">
+        <div className="mx-auto grid max-w-6xl gap-6 px-6 py-10 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+          <div className="min-w-0"><img src={logo.url} alt="FÓRMULACEM" width={581} height={460} className="h-16 w-auto object-contain" /><p className="mt-2 text-xs text-muted-foreground">© 2026 FÓRMULACEM. Lorem ipsum.</p></div>
+          <div className="flex min-w-0 flex-wrap gap-x-4 gap-y-3 font-display text-xs uppercase tracking-normal text-muted-foreground sm:gap-x-6">
             {["Instagram", "LinkedIn", "E-mail"].map((s) => <a key={s} href="#contato" className="hover:text-primary">{s} ↗</a>)}
           </div>
         </div>
