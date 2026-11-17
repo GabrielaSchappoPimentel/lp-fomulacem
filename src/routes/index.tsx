@@ -145,7 +145,7 @@ function Nav() {
       </div>
       <nav className="relative mx-auto flex max-w-6xl items-start justify-center gap-6 px-6 pt-2 md:gap-12">
         <div className="hidden h-12 items-center gap-10 md:flex">{left.map(link)}</div>
-        <a href="#inicio" className="flex h-[76px] w-[220px] shrink-0 items-center justify-center"><img src="../assets/logo.png" alt="FÓRMULACEM" className="h-8 w-auto" /></a>
+        <a href="#inicio" className="flex h-[76px] w-[220px] shrink-0 items-center justify-center"><img src={logo.url} alt="FÓRMULACEM" className="h-8 w-auto" /></a>
         <div className="hidden h-12 items-center gap-10 md:flex">{right.map(link)}</div>
       </nav>
     </header>
