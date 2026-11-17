@@ -143,9 +143,9 @@ function Nav() {
       <div className={`absolute inset-0 bg-card transition-transform duration-700 ease-[cubic-bezier(.2,.8,.2,1)] ${scrolled ? "translate-y-0" : "-translate-y-full"}`} style={{ clipPath: TAB }}>
         <span className="absolute bottom-0 left-1/2 h-0.5 w-[244px] -translate-x-1/2 bg-primary" />
       </div>
-      <nav className="relative mx-auto flex max-w-6xl items-start justify-center gap-6 px-6 md:gap-12">
+      <nav className="relative mx-auto flex max-w-6xl items-start justify-center gap-6 px-6 pt-2 md:gap-12">
         <div className="hidden h-12 items-center gap-10 md:flex">{left.map(link)}</div>
-        <a href="#inicio" className="flex h-[76px] w-[220px] shrink-0 items-center justify-center"><img src={logo.url} alt="FÓRMULACEM" className="h-8 w-auto" /></a>
+        <a href="#inicio" className="flex h-[76px] w-[220px] shrink-0 items-center justify-center"><img src="../assets/logo.png" alt="FÓRMULACEM" className="h-8 w-auto" /></a>
         <div className="hidden h-12 items-center gap-10 md:flex">{right.map(link)}</div>
       </nav>
     </header>
