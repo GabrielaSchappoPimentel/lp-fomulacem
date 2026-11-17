@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowUpRight, Instagram, Linkedin, Mail } from "lucide-react";
+import { ArrowUpRight, Instagram, Linkedin, Mail, Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
@@ -128,26 +129,38 @@ const TAB = "polygon(0 0, 100% 0, 100% calc(100% - 28px), calc(50% + 150px) calc
 
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     const f = () => setScrolled(window.scrollY > window.innerHeight * 0.75);
-    f(); window.addEventListener("scroll", f, { passive: true }); return () => window.removeEventListener("scroll", f);
+    const close = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuOpen(false); };
+    const resize = () => { if (window.innerWidth >= 768) setMenuOpen(false); };
+    document.addEventListener("keydown", close);
+    window.addEventListener("resize", resize);
+    f(); window.addEventListener("scroll", f, { passive: true });
+    return () => { window.removeEventListener("scroll", f); document.removeEventListener("keydown", close); window.removeEventListener("resize", resize); };
   }, []);
   const left = NAV.slice(0, 3), right = NAV.slice(3);
   const link = (n: string) => (
-    <a key={n} href={`#${slug(n)}`} className="group relative font-display text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground">
-      {n}<span className="absolute -bottom-1 left-0 h-px w-0 bg-primary transition-all group-hover:w-full" />
-    </a>
+    <Button key={n} asChild variant="ghost" size="sm" className="group relative shrink-0 rounded-none px-1 font-display text-xs font-normal uppercase tracking-normal text-muted-foreground hover:bg-transparent hover:text-foreground">
+      <a href={`#${slug(n)}`} onClick={() => setMenuOpen(false)}>{n}<span className="absolute bottom-0 left-0 h-px w-0 bg-primary transition-all group-hover:w-full" /></a>
+    </Button>
   );
   return (
     <header className="fixed inset-x-0 top-0 z-50">
-      <div className={`absolute inset-0 bg-card transition-transform duration-700 ease-[cubic-bezier(.2,.8,.2,1)] ${scrolled ? "translate-y-0" : "-translate-y-full"}`} style={{ clipPath: TAB }}>
+      <div className={`absolute inset-x-0 top-0 h-24 bg-card transition-transform duration-700 ease-[cubic-bezier(.2,.8,.2,1)] ${scrolled || menuOpen ? "translate-y-0" : "-translate-y-full"}`} style={{ clipPath: TAB }}>
         <span className="absolute bottom-0 left-1/2 h-0.5 w-[244px] -translate-x-1/2 bg-primary" />
       </div>
-      <nav className="relative mx-auto flex max-w-6xl items-start justify-center gap-6 px-6 pt-2 md:gap-12">
-        <div className="hidden h-12 items-center gap-10 md:flex">{left.map(link)}</div>
-        <a href="#inicio" className="flex h-[76px] w-[220px] shrink-0 items-center justify-center"><img src={logo.url} alt="FÓRMULACEM" className="h-8 w-auto" /></a>
-        <div className="hidden h-12 items-center gap-10 md:flex">{right.map(link)}</div>
+      <nav aria-label="Navegação principal" className="relative mx-auto grid h-24 max-w-5xl grid-cols-[minmax(0,1fr)_112px_minmax(0,1fr)] items-start gap-2 px-4 pt-2 sm:px-6 md:gap-4">
+        <div className="col-start-1 hidden h-16 min-w-0 items-center justify-end gap-3 md:flex lg:gap-6">{left.map(link)}</div>
+        <Button asChild variant="ghost" className="col-start-2 h-20 w-28 shrink-0 rounded-none p-0 hover:bg-transparent">
+          <a href="#inicio" aria-label="FÓRMULACEM — Início" onClick={() => setMenuOpen(false)}><img src={logo.url} alt="FÓRMULACEM" width={581} height={460} className="h-16 w-auto object-contain" /></a>
+        </Button>
+        <div className="col-start-3 hidden h-16 min-w-0 items-center gap-3 md:flex lg:gap-6">{right.map(link)}</div>
+        <div className="col-start-3 flex h-16 justify-end items-center md:hidden">
+          <Button variant="ghost" size="icon" aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(!menuOpen)} className="shrink-0 text-foreground">{menuOpen ? <X /> : <Menu />}</Button>
+        </div>
       </nav>
+      {menuOpen && <nav id="mobile-navigation" aria-label="Navegação móvel" className="relative grid grid-cols-2 gap-3 border-b border-border bg-card px-6 py-6 md:hidden">{NAV.map(link)}</nav>}
     </header>
   );
 }
@@ -346,7 +359,7 @@ function Index() {
       <Contact />
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-6 py-10">
-          <div><img src={logo.url} alt="FÓRMULACEM" className="h-8 w-auto" /><p className="mt-2 text-xs text-muted-foreground">© 2026 FÓRMULACEM. Lorem ipsum.</p></div>
+          <div><img src={logo.url} alt="FÓRMULACEM" width={581} height={460} className="h-16 w-auto object-contain" /><p className="mt-2 text-xs text-muted-foreground">© 2026 FÓRMULACEM. Lorem ipsum.</p></div>
           <div className="flex gap-6 font-display text-xs uppercase tracking-widest text-muted-foreground">
             {["Instagram", "LinkedIn", "E-mail"].map((s) => <a key={s} href="#contato" className="hover:text-primary">{s} ↗</a>)}
           </div>
