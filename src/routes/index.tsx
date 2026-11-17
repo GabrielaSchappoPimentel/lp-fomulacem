@@ -107,7 +107,7 @@ function Progress() {
     const f = () => {
       const h = document.documentElement.scrollHeight - window.innerHeight;
       setP(h > 0 ? window.scrollY / h : 0);
-      let cur = SECTIONS[0][1];
+      let cur = "Início";
       for (const [id, l] of SECTIONS) { const el = document.getElementById(id); if (el && el.getBoundingClientRect().top < window.innerHeight * 0.5) cur = l; }
       setLabel(cur);
     };
