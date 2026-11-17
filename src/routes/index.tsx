@@ -73,25 +73,80 @@ function Panel({ label, className = "" }: { label: string; className?: string })
 }
 
 const NAV = ["Início", "Equipe", "Carro", "Conquistas", "Patrocínio", "Contato"];
+const slug = (n: string) => n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+function useSmoothScroll() {
+  useEffect(() => {
+    let lenis: { raf: (t: number) => void; destroy: () => void; scrollTo: (t: string | HTMLElement) => void } | null = null;
+    let id = 0;
+    let alive = true;
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement).closest('a[href^="#"]') as HTMLAnchorElement | null;
+      if (!a || !lenis) return;
+      const el = document.querySelector(a.getAttribute("href")!);
+      if (el) { e.preventDefault(); lenis.scrollTo(el as HTMLElement); }
+    };
+    import("lenis").then(({ default: Lenis }) => {
+      if (!alive) return;
+      document.documentElement.style.scrollBehavior = "auto";
+      lenis = new Lenis({ lerp: 0.08, smoothWheel: true });
+      const loop = (t: number) => { lenis!.raf(t); id = requestAnimationFrame(loop); };
+      id = requestAnimationFrame(loop);
+    });
+    document.addEventListener("click", onClick);
+    return () => { alive = false; cancelAnimationFrame(id); lenis?.destroy(); document.removeEventListener("click", onClick); };
+  }, []);
+}
+
+const SECTIONS: [string, string][] = [["inicio", "Início"], ["competicao", "Competição"], ["equipe", "Equipe"], ["carro", "Carro"], ["conquistas", "Conquistas"], ["patrocinio", "Patrocínio"], ["equipe-alem", "Comunidade"], ["contato", "Contato"]];
+
+function Progress() {
+  const [p, setP] = useState(0);
+  const [label, setLabel] = useState("Início");
+  useEffect(() => {
+    const f = () => {
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      setP(h > 0 ? window.scrollY / h : 0);
+      let cur = SECTIONS[0][1];
+      for (const [id, l] of SECTIONS) { const el = document.getElementById(id); if (el && el.getBoundingClientRect().top < window.innerHeight * 0.5) cur = l; }
+      setLabel(cur);
+    };
+    f(); window.addEventListener("scroll", f, { passive: true }); return () => window.removeEventListener("scroll", f);
+  }, []);
+  return (
+    <div className="pointer-events-none fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 items-start gap-3 md:flex">
+      <div className="relative h-56 w-1 bg-card">
+        <div className="absolute inset-x-0 top-0 bg-primary" style={{ height: `${p * 100}%` }} />
+      </div>
+      <span key={label} className="font-display text-xs uppercase tracking-[0.3em] text-muted-foreground [writing-mode:vertical-rl]" style={{ animation: "fade-in .5s both" }}>{label}</span>
+    </div>
+  );
+}
+
+/* Shared geometry: top bar + center tab with angled sides (header & hero curtain) */
+const TAB = "polygon(0 0, 100% 0, 100% calc(100% - 28px), calc(50% + 150px) calc(100% - 28px), calc(50% + 122px) 100%, calc(50% - 122px) 100%, calc(50% - 150px) calc(100% - 28px), 0 calc(100% - 28px))";
 
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const f = () => setScrolled(window.scrollY > 40);
-    f(); window.addEventListener("scroll", f); return () => window.removeEventListener("scroll", f);
+    const f = () => setScrolled(window.scrollY > window.innerHeight * 0.75);
+    f(); window.addEventListener("scroll", f, { passive: true }); return () => window.removeEventListener("scroll", f);
   }, []);
   const left = NAV.slice(0, 3), right = NAV.slice(3);
   const link = (n: string) => (
-    <a key={n} href={`#${n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`} className="group relative font-display text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground">
+    <a key={n} href={`#${slug(n)}`} className="group relative font-display text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground">
       {n}<span className="absolute -bottom-1 left-0 h-px w-0 bg-primary transition-all group-hover:w-full" />
     </a>
   );
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${scrolled ? "bg-background/80 backdrop-blur-md" : ""}`}>
-      <nav className="mx-auto flex max-w-6xl items-center justify-center gap-6 px-6 py-4 md:gap-10">
-        <div className="hidden gap-10 md:flex">{left.map(link)}</div>
-        <a href="#inicio" className="chamfer-sm bg-card px-6 py-2"><img src={logo.url} alt="FÓRMULACEM" className="h-7 w-auto" /></a>
-        <div className="hidden gap-10 md:flex">{right.map(link)}</div>
+    <header className="fixed inset-x-0 top-0 z-50">
+      <div className={`absolute inset-0 bg-card transition-transform duration-700 ease-[cubic-bezier(.2,.8,.2,1)] ${scrolled ? "translate-y-0" : "-translate-y-full"}`} style={{ clipPath: TAB }}>
+        <span className="absolute bottom-0 left-1/2 h-0.5 w-[244px] -translate-x-1/2 bg-primary" />
+      </div>
+      <nav className="relative mx-auto flex max-w-6xl items-start justify-center gap-6 px-6 md:gap-12">
+        <div className="hidden h-12 items-center gap-10 md:flex">{left.map(link)}</div>
+        <a href="#inicio" className="flex h-[76px] w-[220px] shrink-0 items-center justify-center"><img src={logo.url} alt="FÓRMULACEM" className="h-8 w-auto" /></a>
+        <div className="hidden h-12 items-center gap-10 md:flex">{right.map(link)}</div>
       </nav>
     </header>
   );
@@ -99,15 +154,16 @@ function Nav() {
 
 function Hero() {
   const [y, setY] = useState(0);
-  useEffect(() => { const f = () => setY(window.scrollY); window.addEventListener("scroll", f); return () => window.removeEventListener("scroll", f); }, []);
+  useEffect(() => { const f = () => setY(window.scrollY); window.addEventListener("scroll", f, { passive: true }); return () => window.removeEventListener("scroll", f); }, []);
   return (
-    <section id="inicio" className="relative flex min-h-screen items-end overflow-hidden pb-20">
+    <section id="inicio" className="relative z-10 flex h-[88vh] min-h-[560px] items-end overflow-hidden bg-card pb-24 drop-shadow-2xl" style={{ clipPath: TAB }}>
       <div className="grid-lines absolute inset-0" style={{ transform: `translateY(${y * 0.3}px)` }} />
       <div className="absolute -right-40 top-1/4 h-96 w-96 rounded-full bg-primary/20 blur-[120px]" />
-      <div className="pointer-events-none absolute bottom-8 left-0 select-none whitespace-nowrap font-display text-[22vw] font-bold leading-none text-ghost" style={{ transform: `translateX(${-y * 0.4}px)` }}>
+      <span className="absolute bottom-0 left-1/2 h-0.5 w-[244px] -translate-x-1/2 bg-primary" />
+      <div className="pointer-events-none absolute bottom-12 left-0 select-none whitespace-nowrap font-display text-[22vw] font-bold leading-none text-ghost" style={{ transform: `translateX(${-y * 0.4}px)` }}>
         FÓRMULACEM FÓRMULACEM
       </div>
-      <div className="relative mx-auto w-full max-w-6xl px-6">
+      <div className="relative mx-auto w-full max-w-6xl px-6" style={{ transform: `translateY(${-y * 0.15}px)`, opacity: Math.max(0, 1 - y / 600) }}>
         <p className="mb-6 max-w-md text-muted-foreground" style={{ animation: "rise 1s .2s both" }}>{LOREM}</p>
         <div className="flex flex-wrap items-end justify-between gap-6">
           <h1 className="overflow-hidden font-display text-6xl font-bold uppercase leading-none tracking-tight md:text-9xl">
@@ -275,9 +331,11 @@ function Contact() {
 }
 
 function Index() {
+  useSmoothScroll();
   return (
     <main className="overflow-x-hidden">
       <Nav />
+      <Progress />
       <Hero />
       <Split id="competicao" eyebrow="A competição" a="A" b="COMPETIÇÃO." />
       <Split id="equipe" eyebrow="Quem somos" a="A" b="EQUIPE." reverse />

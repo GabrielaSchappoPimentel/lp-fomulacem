@@ -130,6 +130,7 @@
 .sweep { animation: sweep 3.5s ease-in-out infinite; }
 @keyframes rise { from { transform: translateY(110%); } to { transform: none; } }
 .rise { display: inline-block; animation: rise 1s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(8px); } }
 @keyframes pulse-dot { 50% { opacity: .3; } }
 .pulse-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .reveal{opacity:1;transform:none} .marquee,.sweep,.rise{animation:none} }
