@@ -27,6 +27,29 @@ const COMPETITION = {
 
 const LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
 
+/* Faixa de logos: velocidade acompanha a rolagem (máx. 6x) */
+function VelocityMarquee() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let lastY = window.scrollY, lastT = performance.now(), rate = 1, raf = 0;
+    const loop = (t: number) => {
+      const y = window.scrollY;
+      const dt = Math.max(t - lastT, 1);
+      const v = Math.abs(y - lastY) / dt; // px/ms
+      lastY = y; lastT = t;
+      const target = Math.min(6, 1 + v * 2.5);
+      rate += (target - rate) * (target > rate ? 0.25 : 0.06);
+      el.getAnimations().forEach((a) => (a.playbackRate = rate));
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return <div ref={ref} className="marquee flex w-max gap-4">{[...Array(16)].map((_, i) => <Logo key={i} i={(i % 8) + 1} />)}</div>;
+}
+
 function useInView<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   useEffect(() => {
@@ -334,7 +357,7 @@ function Sponsors() {
         <div className="mt-12 mb-3 font-display text-xs uppercase tracking-widest text-sponsor-fg/60">Apoio</div>
       </div>
       <div className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
-        <div className="marquee flex w-max gap-4">{[...Array(16)].map((_, i) => <Logo key={i} i={(i % 8) + 1} />)}</div>
+        <VelocityMarquee />
       </div>
       <Reveal className="mx-auto mt-24 max-w-6xl px-6">
         <div className="chamfer relative flex flex-wrap items-center justify-between gap-8 overflow-hidden bg-cta p-10 text-foreground md:p-14">
