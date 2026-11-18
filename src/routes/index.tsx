@@ -192,11 +192,12 @@ function Hero() {
           <Cta>Lorem ipsum</Cta>
         </div>
       </div>
+      <Countdown />
     </section>
   );
 }
 
-/* ---- Contador: painel fixo na borda direita do Hero ---- */
+/* ---- Contador: painel ancorado ao Hero + faixa abaixo dele em telas estreitas ---- */
 const pad = (n: number) => String(n).padStart(2, "0");
 
 function timeLeft(iso: string) {
@@ -210,26 +211,36 @@ function timeLeft(iso: string) {
   };
 }
 
-function Countdown() {
-  const [open, setOpen] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [gone, setGone] = useState(false);
-  const [compact, setCompact] = useState(false);
+/* O valor real só chega depois da hidratação: "--" evita mostrar número errado antes. */
+function useCountdown() {
   const [t, setT] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-
+  const [live, setLive] = useState(false);
   useEffect(() => {
     const tick = () => setT(timeLeft(COMPETITION.date));
     tick();
-    setReady(true);
+    setLive(true);
     const id = setInterval(tick, 1000);
-    const f = () => {
-      setGone(window.scrollY > window.innerHeight * 0.85);
-      setCompact(window.innerHeight < 700);
-    };
+    return () => clearInterval(id);
+  }, []);
+  return { t, live };
+}
+
+/* Dias sem zero à esquerda; horas, minutos e segundos sempre com dois dígitos. */
+function Num({ v, live, two = false }: { v: number; live: boolean; two?: boolean }) {
+  return <>{live ? (two ? pad(v) : String(v)) : "—"}</>;
+}
+
+/* Painel vertical: absolute dentro do Hero, sai da tela junto com ele. */
+function Countdown() {
+  const [open, setOpen] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const { t, live } = useCountdown();
+
+  useEffect(() => {
+    const f = () => setCompact(window.innerHeight < 700);
     f();
-    window.addEventListener("scroll", f, { passive: true });
     window.addEventListener("resize", f);
-    return () => { clearInterval(id); window.removeEventListener("scroll", f); window.removeEventListener("resize", f); };
+    return () => window.removeEventListener("resize", f);
   }, []);
 
   const units: [string, number][] = [["Dias", t.days], ["Horas", t.hours], ["Min", t.minutes], ["Seg", t.seconds]];
@@ -242,15 +253,13 @@ function Countdown() {
       onMouseLeave={() => setOpen(false)}
       onFocus={() => setOpen(true)}
       onBlur={() => setOpen(false)}
-      className={`fixed right-0 top-[104px] z-40 hidden min-[930px]:block outline-none transition-opacity duration-700 ${ready && !gone ? "opacity-100" : "pointer-events-none opacity-0"}`}
+      className="absolute right-0 top-[104px] z-20 hidden outline-none min-[930px]:block"
     >
-      <div className={`clip-countdown relative flex h-[min(340px,max(140px,calc(88vh-372px)))] items-stretch overflow-hidden border-t-2 bg-card transition-[width,border-color] duration-500 ease-[cubic-bezier(.2,.8,.2,1)] ${open ? `${compact ? "w-[300px]" : "w-[380px]"} border-primary` : "w-[76px] border-transparent"}`}>
-        <div className={`flex w-[76px] shrink-0 flex-col items-center py-5 ${compact ? "justify-center" : "justify-between"}`}>
-          {!compact && (
-            <span className="min-h-0 flex-1 overflow-hidden font-display text-[10px] uppercase tracking-[0.25em] text-foreground/60 [writing-mode:vertical-rl]">Próxima competição</span>
-          )}
+      <div className={`clip-countdown relative flex h-[340px] items-stretch border-t-2 bg-card transition-[width,border-color] duration-500 ease-[cubic-bezier(.2,.8,.2,1)] ${open ? `${compact ? "w-[300px]" : "w-[380px]"} border-primary` : "w-[96px] border-transparent"}`}>
+        <div className={`flex w-[96px] shrink-0 flex-col items-center py-5 ${compact ? "justify-center gap-4" : "justify-between"}`}>
+          <span className="whitespace-nowrap font-display text-[10px] uppercase tracking-[0.25em] text-foreground/60 [writing-mode:vertical-rl]">Próxima competição</span>
           <div className={`flex shrink-0 flex-col items-center transition-opacity duration-200 ${open ? "opacity-0" : "opacity-100"}`}>
-            <span className="font-display text-3xl font-bold tabular-nums text-primary">{t.days}</span>
+            <span className="font-display text-3xl font-bold tabular-nums text-primary"><Num v={t.days} live={live} /></span>
             <span className="font-display text-[9px] uppercase tracking-widest text-muted-foreground">dias</span>
           </div>
         </div>
@@ -260,11 +269,40 @@ function Countdown() {
           <div className={`grid grid-cols-4 ${compact ? "mt-3 gap-1" : "mt-6 gap-3"}`}>
             {units.map(([l, v]) => (
               <div key={l} className="border-l border-border pl-2">
-                <div className={`font-display font-bold tabular-nums ${l === "Dias" ? "text-primary" : "text-foreground"} ${compact ? "text-base" : "text-xl"}`}>{l === "Dias" ? v : pad(v)}</div>
+                <div className={`font-display font-bold tabular-nums ${l === "Dias" ? "text-primary" : "text-foreground"} ${compact ? "text-base" : "text-xl"}`}>
+                  <Num v={v} live={live} two={l !== "Dias"} />
+                </div>
                 <div className="text-[9px] uppercase tracking-widest text-muted-foreground">{l}</div>
               </div>
             ))}
           </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+/* Faixa horizontal logo abaixo do Hero, para telas abaixo de 930px. */
+function CountdownStrip() {
+  const { t, live } = useCountdown();
+  const units: [string, number][] = [["Dias", t.days], ["Horas", t.hours], ["Min", t.minutes], ["Seg", t.seconds]];
+
+  return (
+    <aside aria-label="Contagem regressiva para a próxima competição" className="border-t border-border bg-card min-[930px]:hidden">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-4 px-6 py-5">
+        <div className="min-w-0 border-l-2 border-primary pl-3">
+          <div className="font-display text-[10px] uppercase tracking-[0.3em] text-primary">Próxima competição</div>
+          <div className="mt-1 truncate font-display text-xs font-semibold uppercase tracking-wider text-foreground">{COMPETITION.name}</div>
+        </div>
+        <div className="grid shrink-0 grid-cols-4 gap-4 sm:gap-6">
+          {units.map(([l, v]) => (
+            <div key={l} className="border-l border-border pl-3">
+              <div className={`font-display text-2xl font-bold leading-none tabular-nums ${l === "Dias" ? "text-primary" : "text-foreground"}`}>
+                <Num v={v} live={live} two={l !== "Dias"} />
+              </div>
+              <div className="mt-1 text-[9px] uppercase tracking-widest text-muted-foreground">{l}</div>
+            </div>
+          ))}
         </div>
       </div>
     </aside>
@@ -434,7 +472,7 @@ function Index() {
       <Nav />
       <Progress />
       <Hero />
-      <Countdown />
+      <CountdownStrip />
       <Split id="competicao" eyebrow="A competição" a="A" b="COMPETIÇÃO." />
       <Split id="equipe" eyebrow="Quem somos" a="A" b="EQUIPE." reverse />
       <Car />
