@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowUpRight, Instagram, Linkedin, Mail, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png.asset.json";
+import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -81,29 +82,6 @@ function Panel({ label, className = "" }: { label: string; className?: string })
 
 const NAV = ["Início", "Equipe", "Carro", "Conquistas", "Patrocínio", "Galeria", "Contato"];
 const slug = (n: string) => n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-function useSmoothScroll() {
-  useEffect(() => {
-    let lenis: { raf: (t: number) => void; destroy: () => void; scrollTo: (t: string | HTMLElement) => void } | null = null;
-    let id = 0;
-    let alive = true;
-    const onClick = (e: MouseEvent) => {
-      const a = (e.target as HTMLElement).closest('a[href^="#"]') as HTMLAnchorElement | null;
-      if (!a || !lenis) return;
-      const el = document.querySelector(a.getAttribute("href")!);
-      if (el) { e.preventDefault(); lenis.scrollTo(el as HTMLElement); }
-    };
-    import("lenis").then(({ default: Lenis }) => {
-      if (!alive) return;
-      document.documentElement.style.scrollBehavior = "auto";
-      lenis = new Lenis({ lerp: 0.08, smoothWheel: true });
-      const loop = (t: number) => { lenis!.raf(t); id = requestAnimationFrame(loop); };
-      id = requestAnimationFrame(loop);
-    });
-    document.addEventListener("click", onClick);
-    return () => { alive = false; cancelAnimationFrame(id); lenis?.destroy(); document.removeEventListener("click", onClick); };
-  }, []);
-}
 
 const SECTIONS: [string, string][] = [["inicio", "Início"], ["competicao", "Competição"], ["equipe", "Equipe"], ["carro", "Carro"], ["conquistas", "Conquistas"], ["patrocinio", "Patrocínio"], ["galeria", "Galeria"], ["contato", "Contato"]];
 
