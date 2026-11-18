@@ -79,7 +79,7 @@ function Panel({ label, className = "" }: { label: string; className?: string })
   );
 }
 
-const NAV = ["Início", "Equipe", "Carro", "Conquistas", "Patrocínio", "Contato"];
+const NAV = ["Início", "Equipe", "Carro", "Conquistas", "Patrocínio", "Galeria", "Contato"];
 const slug = (n: string) => n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 function useSmoothScroll() {
@@ -105,7 +105,7 @@ function useSmoothScroll() {
   }, []);
 }
 
-const SECTIONS: [string, string][] = [["inicio", "Início"], ["competicao", "Competição"], ["equipe", "Equipe"], ["carro", "Carro"], ["conquistas", "Conquistas"], ["patrocinio", "Patrocínio"], ["equipe-alem", "Comunidade"], ["contato", "Contato"]];
+const SECTIONS: [string, string][] = [["inicio", "Início"], ["competicao", "Competição"], ["equipe", "Equipe"], ["carro", "Carro"], ["conquistas", "Conquistas"], ["patrocinio", "Patrocínio"], ["galeria", "Galeria"], ["contato", "Contato"]];
 
 function Progress() {
   const [p, setP] = useState(0);
@@ -145,7 +145,7 @@ function Nav() {
     f(); window.addEventListener("scroll", f, { passive: true });
     return () => { window.removeEventListener("scroll", f); document.removeEventListener("keydown", close); window.removeEventListener("resize", resize); };
   }, []);
-  const left = NAV.slice(0, 3), right = NAV.slice(3);
+  const left = NAV.slice(0, 4), right = NAV.slice(4);
   const link = (n: string) => (
     <Button key={n} asChild variant="ghost" size="sm" className="group relative shrink-0 rounded-none px-1 font-display text-xs font-normal uppercase tracking-normal text-muted-foreground hover:bg-transparent hover:text-foreground">
       <a href={`#${slug(n)}`} onClick={() => setMenuOpen(false)}>{n}<span className="absolute bottom-0 left-0 h-px w-0 bg-primary transition-all group-hover:w-full" /></a>
@@ -371,8 +371,8 @@ function Sponsors() {
 
 function Beyond() {
   return (
-    <section id="equipe-alem" className="mx-auto max-w-6xl px-6 py-24">
-      <Reveal><Eyebrow>Comunidade</Eyebrow><p className="mb-10 max-w-md text-muted-foreground">{LOREM}</p><Title a="ALÉM DA LINHA" b="DE CHEGADA." /></Reveal>
+    <section id="galeria" className="mx-auto max-w-6xl px-6 py-24">
+      <Reveal><Eyebrow>Galeria</Eyebrow><p className="mb-10 max-w-md text-muted-foreground">{LOREM}</p><Title a="ALÉM DA LINHA" b="DE CHEGADA." /></Reveal>
       <div className="mt-16 grid auto-rows-[160px] gap-4 md:grid-cols-3">
         <Reveal className="md:col-span-2 md:row-span-2"><Panel label="Lorem" className="h-full" /></Reveal>
         <Reveal delay={100}><Panel label="Ipsum" className="h-full" /></Reveal>
