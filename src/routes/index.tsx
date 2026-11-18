@@ -18,6 +18,12 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+/* [DATA A DEFINIR] — data da próxima competição. Trocar apenas aqui, o layout não muda. */
+const COMPETITION = {
+  name: "[NOME DA COMPETIÇÃO]",
+  date: "2027-06-15T09:00:00-03:00",
+};
+
 const LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
 
 function useInView<T extends HTMLElement>() {
@@ -189,6 +195,81 @@ function Hero() {
   );
 }
 
+/* ---- Contador: painel fixo na borda direita do Hero ---- */
+const pad = (n: number) => String(n).padStart(2, "0");
+
+function timeLeft(iso: string) {
+  const ms = Math.max(0, new Date(iso).getTime() - Date.now());
+  const s = Math.floor(ms / 1000);
+  return {
+    days: Math.floor(s / 86400),
+    hours: Math.floor(s / 3600) % 24,
+    minutes: Math.floor(s / 60) % 60,
+    seconds: s % 60,
+  };
+}
+
+function Countdown() {
+  const [open, setOpen] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [gone, setGone] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const [t, setT] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const tick = () => setT(timeLeft(COMPETITION.date));
+    tick();
+    setReady(true);
+    const id = setInterval(tick, 1000);
+    const f = () => {
+      setGone(window.scrollY > window.innerHeight * 0.85);
+      setCompact(window.innerHeight < 700);
+    };
+    f();
+    window.addEventListener("scroll", f, { passive: true });
+    window.addEventListener("resize", f);
+    return () => { clearInterval(id); window.removeEventListener("scroll", f); window.removeEventListener("resize", f); };
+  }, []);
+
+  const units: [string, number][] = [["Dias", t.days], ["Horas", t.hours], ["Min", t.minutes], ["Seg", t.seconds]];
+
+  return (
+    <aside
+      aria-label="Contagem regressiva para a próxima competição"
+      tabIndex={0}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onFocus={() => setOpen(true)}
+      onBlur={() => setOpen(false)}
+      className={`fixed right-0 top-[104px] z-40 hidden min-[930px]:block outline-none transition-opacity duration-700 ${ready && !gone ? "opacity-100" : "pointer-events-none opacity-0"}`}
+    >
+      <div className={`clip-countdown relative flex h-[min(340px,max(140px,calc(88vh-372px)))] items-stretch overflow-hidden border-t-2 bg-card transition-[width,border-color] duration-500 ease-[cubic-bezier(.2,.8,.2,1)] ${open ? `${compact ? "w-[300px]" : "w-[380px]"} border-primary` : "w-[76px] border-transparent"}`}>
+        <div className={`flex w-[76px] shrink-0 flex-col items-center py-5 ${compact ? "justify-center" : "justify-between"}`}>
+          {!compact && (
+            <span className="min-h-0 flex-1 overflow-hidden font-display text-[10px] uppercase tracking-[0.25em] text-foreground/60 [writing-mode:vertical-rl]">Próxima competição</span>
+          )}
+          <div className={`flex shrink-0 flex-col items-center transition-opacity duration-200 ${open ? "opacity-0" : "opacity-100"}`}>
+            <span className="font-display text-3xl font-bold tabular-nums text-primary">{t.days}</span>
+            <span className="font-display text-[9px] uppercase tracking-widest text-muted-foreground">dias</span>
+          </div>
+        </div>
+        <div className={`min-w-0 flex-1 px-5 py-5 transition-all duration-300 ${open ? "translate-x-0 opacity-100 delay-150" : "-translate-x-4 opacity-0"}`}>
+          <div className="font-display text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Competição</div>
+          <div className={`mt-1 font-display font-semibold uppercase leading-tight ${compact ? "text-xs" : "text-base"}`}>{COMPETITION.name}</div>
+          <div className={`grid grid-cols-4 ${compact ? "mt-3 gap-1" : "mt-6 gap-3"}`}>
+            {units.map(([l, v]) => (
+              <div key={l} className="border-l border-border pl-2">
+                <div className={`font-display font-bold tabular-nums ${l === "Dias" ? "text-primary" : "text-foreground"} ${compact ? "text-base" : "text-xl"}`}>{l === "Dias" ? v : pad(v)}</div>
+                <div className="text-[9px] uppercase tracking-widest text-muted-foreground">{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
 function Split({ id, eyebrow, a, b, reverse }: { id: string; eyebrow: string; a: string; b: string; reverse?: boolean }) {
   return (
     <section id={id} className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-24 md:grid-cols-2">
@@ -350,6 +431,7 @@ function Index() {
       <Nav />
       <Progress />
       <Hero />
+      <Countdown />
       <Split id="competicao" eyebrow="A competição" a="A" b="COMPETIÇÃO." />
       <Split id="equipe" eyebrow="Quem somos" a="A" b="EQUIPE." reverse />
       <Car />
