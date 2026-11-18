@@ -337,27 +337,29 @@ function Achievements() {
 
 function Logo({ i, big }: { i: number; big?: boolean }) {
   return (
-    <div className={`chamfer-sm flex shrink-0 flex-col items-center justify-center gap-2 bg-card transition-colors hover:bg-secondary ${big ? "h-36" : "h-20 w-44"}`}>
-      <span className={`font-display font-semibold text-muted-foreground ${big ? "text-2xl" : "text-base"}`}>[LOGO]</span>
-      <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60">Patrocinador 0{i}</span>
+    <div className={`chamfer-sm flex shrink-0 flex-col items-center justify-center gap-2 border border-sponsor-fg/10 bg-sponsor-card transition-colors hover:border-sponsor-fg/30 ${big ? "h-36" : "h-20 w-44"}`}>
+      <span className={`font-display font-semibold text-sponsor-fg ${big ? "text-2xl" : "text-base"}`}>[LOGO]</span>
+      <span className="text-[10px] uppercase tracking-widest text-sponsor-fg/70">Patrocinador 0{i}</span>
     </div>
   );
 }
 
 function Sponsors() {
   return (
-    <section id="patrocinio" className="py-24">
+    <section id="patrocinio" className="bg-sponsor py-24 text-sponsor-fg">
       <div className="mx-auto max-w-6xl px-6">
-        <Reveal><Eyebrow>Parceiros</Eyebrow><p className="mb-10 max-w-md text-muted-foreground">{LOREM}</p><Title a="LOREM." b="IPSUM." /></Reveal>
-        <div className="mt-12 mb-3 font-display text-xs uppercase tracking-widest text-muted-foreground">Patrocinadores ouro</div>
+        <Reveal><Eyebrow>Parceiros</Eyebrow><p className="mb-10 max-w-md text-sponsor-fg/60">{LOREM}</p>
+          <h2 className="font-display text-5xl font-bold uppercase leading-none tracking-tight md:text-7xl">QUEM ACELERA<br /><span className="text-outline">COM A GENTE.</span></h2>
+        </Reveal>
+        <div className="mt-12 mb-3 font-display text-xs uppercase tracking-widest text-sponsor-fg/60">Patrocinadores ouro</div>
         <div className="grid gap-6 md:grid-cols-3">{[1, 2, 3].map((i) => <Reveal key={i} delay={i * 100}><Logo i={i} big /></Reveal>)}</div>
-        <div className="mt-12 mb-3 font-display text-xs uppercase tracking-widest text-muted-foreground">Apoio</div>
+        <div className="mt-12 mb-3 font-display text-xs uppercase tracking-widest text-sponsor-fg/60">Apoio</div>
       </div>
       <div className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
         <div className="marquee flex w-max gap-4">{[...Array(16)].map((_, i) => <Logo key={i} i={(i % 8) + 1} />)}</div>
       </div>
       <Reveal className="mx-auto mt-24 max-w-6xl px-6">
-        <div className="chamfer relative flex flex-wrap items-center justify-between gap-8 overflow-hidden bg-cta p-10 md:p-14">
+        <div className="chamfer relative flex flex-wrap items-center justify-between gap-8 overflow-hidden bg-cta p-10 text-foreground md:p-14">
           <div className="grid-lines absolute inset-0 opacity-40" />
           <h3 className="relative font-display text-3xl font-bold uppercase leading-tight md:text-4xl">Lorem ipsum<br /><span className="text-outline">dolor sit amet</span></h3>
           <div className="relative max-w-xs"><p className="mb-6 text-sm text-muted-foreground">{LOREM}</p><Cta>Seja parceiro</Cta></div>
